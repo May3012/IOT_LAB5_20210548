@@ -24,24 +24,32 @@ public class MainActivity extends AppCompatActivity {
     private EditText etPeso, etAltura, etEdad;
     private Spinner spGenero, spNivelActividad, spObjetivo;
     private Button btnGuardar;
-    private SharedPreferences sharedPreferences;
     private TextView tvCaloriasDiarias;
     private double caloriasDiarias;
     private Usuario usuario;
     private NotifcacionesActivity notificacionesManager;
 
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
+
+        // Configuración para el ajuste de pantalla completa
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        // Inicializacion de notificaciones
+        notificacionesManager = new NotifcacionesActivity(this);
+        int intervaloMinutos = 2; // Intervalo de notificación en minutos
+        notificacionesManager.iniciarNotificacionMotivacion(intervaloMinutos);
+        double caloriasTotales = 2500;
+        double caloriasRecomendadas = 2000;
+        notificacionesManager.mostrarNotificacionExcesoCalorias(caloriasTotales, caloriasRecomendadas);
+
+        // Inicializacion de vistas
         etPeso = findViewById(R.id.etPeso);
         etAltura = findViewById(R.id.etAltura);
         etEdad = findViewById(R.id.etEdad);
@@ -49,9 +57,23 @@ public class MainActivity extends AppCompatActivity {
         spNivelActividad = findViewById(R.id.spNivelActividad);
         spObjetivo = findViewById(R.id.spObjetivo);
         btnGuardar = findViewById(R.id.btnGuardar);
-        tvCaloriasDiarias = findViewById(R.id.tvCaloriasDiarias); // Inicialización añadida
+        tvCaloriasDiarias = findViewById(R.id.tvCaloriasDiarias);
 
-        // Configurar los Spinners con adaptadores de Array
+        // Spinners con adaptadores de Array
+        configurarSpinners();
+
+        // Botón de guardar
+        btnGuardar.setOnClickListener(v -> {
+            if (guardarDatos()) {
+                calcularCaloriasDiarias();
+                Intent intent = new Intent(MainActivity.this, ComidasActivity.class);
+                intent.putExtra("caloriasRecomendadas", caloriasDiarias);
+                startActivity(intent);
+            }
+        });
+    }
+
+    private void configurarSpinners() {
         ArrayAdapter<CharSequence> adapterGenero = ArrayAdapter.createFromResource(this,
                 R.array.genero_array, android.R.layout.simple_spinner_item);
         adapterGenero.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -66,21 +88,10 @@ public class MainActivity extends AppCompatActivity {
                 R.array.objetivo_array, android.R.layout.simple_spinner_item);
         adapterObjetivo.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spObjetivo.setAdapter(adapterObjetivo);
-
-        btnGuardar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                guardarDatos();
-                calcularCaloriasDiarias();
-                Intent intent = new Intent(MainActivity.this, ComidasActivity.class);
-                intent.putExtra("caloriasRecomendadas", caloriasDiarias);
-                //notificacionesManager.mostrarNotificacionExcesoCalorias();
-                startActivity(intent);
-            }
-        });
     }
-    private void guardarDatos() {
-        // Obtener valores de los campos
+
+    private boolean guardarDatos() {
+        // Obtenemos los valores de los campos
         String peso = etPeso.getText().toString();
         String altura = etAltura.getText().toString();
         String edad = etEdad.getText().toString();
@@ -88,14 +99,16 @@ public class MainActivity extends AppCompatActivity {
         String nivelActividad = spNivelActividad.getSelectedItem().toString();
         String objetivo = spObjetivo.getSelectedItem().toString();
 
+        // Verificamos que los campos no estén vacíos
         if (peso.isEmpty() || altura.isEmpty() || edad.isEmpty()) {
             Toast.makeText(this, "Por favor, completa todos los campos", Toast.LENGTH_SHORT).show();
-            return;
+            return false; // No se guardaron los datos
         }
 
-        // Crear y almacenar el objeto Usuario
+        // Creamos y almacenamos el  Usuario
         usuario = new Usuario(peso, altura, edad, genero, nivelActividad, objetivo);
         Toast.makeText(this, "Datos guardados", Toast.LENGTH_SHORT).show();
+        return true; // Se guardaron los datos correctamente
     }
 
     private void calcularCaloriasDiarias() {
@@ -113,15 +126,18 @@ public class MainActivity extends AppCompatActivity {
 
         double tmb;
 
+        // Fórmula
         if (genero.equals("Masculino")) {
-            tmb = 5 + (10* peso) + (6.25* altura) - (5 * edad);
+            tmb = 5 + (10 * peso) + (6.25 * altura) - (5 * edad);
         } else {
             tmb = -161 + (10 * peso) + (6.25 * altura) - (5 * edad);
         }
 
+        // Cálculo de calorías diarias
         double factorActividad = obtenerFactorActividad(nivelActividad);
         caloriasDiarias = tmb * factorActividad;
 
+        // Según el objetivo
         if (objetivo.equals("Subir de peso")) {
             caloriasDiarias += 500;
         } else if (objetivo.equals("Bajar de peso")) {
@@ -144,7 +160,7 @@ public class MainActivity extends AppCompatActivity {
             case "Muy activo":
                 return 1.9;
             default:
-                return 1.2;
+                return 1.2; // Por defecto, asumimos un estilo de vida sedentario
         }
     }
 }

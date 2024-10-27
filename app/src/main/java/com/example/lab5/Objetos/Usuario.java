@@ -19,22 +19,51 @@ public class Usuario implements Serializable {
         this.objetivo = objetivo;
     }
 
-    // Getters y Setters
-    public String getPeso() { return peso; }
-    public void setPeso(String peso) { this.peso = peso; }
+    public String getObjetivo() {
+        return objetivo;
+    }
 
-    public String getAltura() { return altura; }
-    public void setAltura(String altura) { this.altura = altura; }
+    public void setObjetivo(String objetivo) {
+        this.objetivo = objetivo;
+    }
 
-    public String getEdad() { return edad; }
-    public void setEdad(String edad) { this.edad = edad; }
+    public String getNivelActividad() {
+        return nivelActividad;
+    }
 
-    public String getGenero() { return genero; }
-    public void setGenero(String genero) { this.genero = genero; }
+    public void setNivelActividad(String nivelActividad) {
+        this.nivelActividad = nivelActividad;
+    }
 
-    public String getNivelActividad() { return nivelActividad; }
-    public void setNivelActividad(String nivelActividad) { this.nivelActividad = nivelActividad; }
+    public String getGenero() {
+        return genero;
+    }
 
-    public String getObjetivo() { return objetivo; }
-    public void setObjetivo(String objetivo) { this.objetivo = objetivo; }
+    public void setGenero(String genero) {
+        this.genero = genero;
+    }
+
+    public String getEdad() {
+        return edad;
+    }
+
+    public void setEdad(String edad) {
+        this.edad = edad;
+    }
+
+    public String getAltura() {
+        return altura;
+    }
+
+    public void setAltura(String altura) {
+        this.altura = altura;
+    }
+
+    public String getPeso() {
+        return peso;
+    }
+
+    public void setPeso(String peso) {
+        this.peso = peso;
+    }
 }

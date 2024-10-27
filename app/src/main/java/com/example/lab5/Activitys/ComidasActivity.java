@@ -12,6 +12,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -50,9 +51,14 @@ public class ComidasActivity extends AppCompatActivity {
             return insets;
         });
 
+        // Gestor de notificaciones
+       notificacionesManager = new NotifcacionesActivity(this); // Aquí puedes pasar el contexto si es necesario
+
+        // Notificación inicial
         notificacionesManager.mostrarNotificacionRecordatorioComida("almuerzo");
         caloriasRecomendadas = getIntent().getDoubleExtra("caloriasRecomendadas", 0);
 
+        // Vistas y adaptador
         etComida = findViewById(R.id.etComida);
         etCalorias = findViewById(R.id.etCalorias);
         btnAgregarComida = findViewById(R.id.btnAgregarComida);
@@ -67,25 +73,32 @@ public class ComidasActivity extends AppCompatActivity {
         btnAgregarComida.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String nombreComida = etComida.getText().toString();
-                float calorias = Float.parseFloat(etCalorias.getText().toString());
-                caloriasTotales += calorias;
-                listaComidas.add(new Comida(nombreComida, calorias));
-                adapter.notifyDataSetChanged();
-                tvCaloriasTotales.setText("Total Calorías Consumidas: " + caloriasTotales +
-                        " / Recomendadas: " + caloriasRecomendadas);
+                String nombreComida = etComida.getText().toString().trim();
+                String caloriasInput = etCalorias.getText().toString().trim();
 
-                // Verificar si se exceden las calorías recomendadas
-                if (caloriasTotales > caloriasRecomendadas) {
-                    notificacionesManager.mostrarNotificacionExcesoCalorias(caloriasTotales, caloriasRecomendadas);
+                if (nombreComida.isEmpty() || caloriasInput.isEmpty()) {
+                    Toast.makeText(ComidasActivity.this, "Por favor, completa todos los campos", Toast.LENGTH_SHORT).show();
+                    return;
                 }
-                notificacionesManager.mostrarNotificacionRecordatorioComida("almuerzo");
 
-// Para motivación, podrías establecer un temporizador que llame a esto en intervalos
-                notificacionesManager.mostrarNotificacionMotivacion("Sigue adelante, ¡tú puedes!");
-                etComida.setText("");
-                etCalorias.setText("");
+                try {
+                    float calorias = Float.parseFloat(caloriasInput);
+                    caloriasTotales += calorias;
+                    listaComidas.add(new Comida(nombreComida, calorias));
+                    adapter.notifyDataSetChanged();
+                    tvCaloriasTotales.setText("Total Calorías Consumidas: " + caloriasTotales +
+                            " / Recomendadas: " + caloriasRecomendadas);
+
+                    if (caloriasTotales > caloriasRecomendadas) {
+                        notificacionesManager.mostrarNotificacionExcesoCalorias(caloriasTotales, caloriasRecomendadas);
+                    }
+
+                    notificacionesManager.mostrarNotificacionRecordatorioComida("almuerzo");
+                    etComida.setText("");
+                    etCalorias.setText("");
+                } catch (NumberFormatException e) {
+                    Toast.makeText(ComidasActivity.this, "Por favor, ingresa un número válido para las calorías", Toast.LENGTH_SHORT).show();
+                }
             }
         });
-    }
-}
+}}
